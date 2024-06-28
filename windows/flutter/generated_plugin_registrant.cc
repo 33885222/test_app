@@ -6,9 +6,9 @@
 
 #include "generated_plugin_registrant.h"
 
-#include <wireguard_flutter/wireguard_flutter_plugin_c_api.h>
+#include <battery_plus_windows/battery_plus_windows_plugin.h>
 
 void RegisterPlugins(flutter::PluginRegistry* registry) {
-  WireguardFlutterPluginCApiRegisterWithRegistrar(
-      registry->GetRegistrarForPlugin("WireguardFlutterPluginCApi"));
+  BatteryPlusWindowsPluginRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("BatteryPlusWindowsPlugin"));
 }
