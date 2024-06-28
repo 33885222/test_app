@@ -4,5 +4,6 @@ use_frameworks!
 use_modular_headers!
 
 target 'Runner' do
-
+    pod 'path_provider'
+    pod 'path_provider_foundation'
 end
