@@ -12,7 +12,7 @@ class TotoVPNApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(
-      title: 'TotoVPN',
+      title: 'Toto VPN',
       home: HomePage(),
     );
   }
