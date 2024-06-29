@@ -1,40 +1,38 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:wireguard_flutter/wireguard_flutter.dart';
 
 void main() {
-  runApp(const TotoVPNApp());
+  runApp(
+    MaterialApp(
+      home: Scaffold(
+        appBar: AppBar(
+          title: const Text('WireGuard Example App'),
+        ),
+        body: const MyApp(),
+      ),
+    ),
+  );
 }
 
-class TotoVPNApp extends StatelessWidget {
-  const TotoVPNApp({super.key});
+class MyApp extends StatefulWidget {
+  const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return const MaterialApp(
-      title: 'Toto VPN',
-      home: HomePage(),
-    );
-  }
+  State<MyApp> createState() => _MyAppState();
 }
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
-
-  @override
-  HomePageState createState() => HomePageState();
-}
-
-class HomePageState extends State<HomePage> {
+class _MyAppState extends State<MyApp> {
   final wireguard = WireGuardFlutter.instance;
+
   late String name;
 
   @override
   void initState() {
     super.initState();
     wireguard.vpnStageSnapshot.listen((event) {
-      // debugPrint("status changed $event");
-      showMsg("status changed $event");
+      debugPrint("status changed $event");
       if (mounted) {
         ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -49,7 +47,6 @@ class HomePageState extends State<HomePage> {
     try {
       await wireguard.initialize(interfaceName: name);
       debugPrint("initialize success $name");
-      startVpn();
     } catch (error, stack) {
       debugPrint("failed to initialize: $error\n$stack");
     }
@@ -87,72 +84,84 @@ class HomePageState extends State<HomePage> {
     }
   }
 
-  int _counter = 0;
-
-  void showMsg(String text) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Counter: $text'),
-        duration: Duration(seconds: 2),
-      ),
-    );
-  }
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
-
-  void _goToSettings() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const SettingsPage()),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('TotoVPN'),
-        leading: IconButton(
-          icon: const Icon(Icons.settings),
-          onPressed: _goToSettings,
-        ),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text('$_counter'),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: initialize,
-              child: const Text('Увеличить'),
+    return Container(
+      constraints: const BoxConstraints.expand(),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const SizedBox(height: 20),
+          TextButton(
+            onPressed: initialize,
+            style: ButtonStyle(
+                minimumSize:
+                    MaterialStateProperty.all<Size>(const Size(100, 50)),
+                padding: MaterialStateProperty.all(
+                    const EdgeInsets.fromLTRB(20, 15, 20, 15)),
+                backgroundColor:
+                    MaterialStateProperty.all<Color>(Colors.blueAccent),
+                overlayColor: MaterialStateProperty.all<Color>(
+                    Colors.white.withOpacity(0.1))),
+            child: const Text(
+              'initialize',
+              style: TextStyle(color: Colors.white),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class SettingsPage extends StatelessWidget {
-  const SettingsPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Настройки'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
-      body: const Center(
-        child: Text('Настройки'),
+          ),
+          const SizedBox(height: 20),
+          TextButton(
+            onPressed: startVpn,
+            style: ButtonStyle(
+                minimumSize:
+                    MaterialStateProperty.all<Size>(const Size(100, 50)),
+                padding: MaterialStateProperty.all(
+                    const EdgeInsets.fromLTRB(20, 15, 20, 15)),
+                backgroundColor:
+                    MaterialStateProperty.all<Color>(Colors.blueAccent),
+                overlayColor: MaterialStateProperty.all<Color>(
+                    Colors.white.withOpacity(0.1))),
+            child: const Text(
+              'Connect',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+          const SizedBox(height: 20),
+          TextButton(
+            onPressed: disconnect,
+            style: ButtonStyle(
+                minimumSize:
+                    MaterialStateProperty.all<Size>(const Size(100, 50)),
+                padding: MaterialStateProperty.all(
+                    const EdgeInsets.fromLTRB(20, 15, 20, 15)),
+                backgroundColor:
+                    MaterialStateProperty.all<Color>(Colors.blueAccent),
+                overlayColor: MaterialStateProperty.all<Color>(
+                    Colors.white.withOpacity(0.1))),
+            child: const Text(
+              'Disconnect',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+          const SizedBox(height: 20),
+          TextButton(
+            onPressed: getStatus,
+            style: ButtonStyle(
+                minimumSize:
+                    MaterialStateProperty.all<Size>(const Size(100, 50)),
+                padding: MaterialStateProperty.all(
+                    const EdgeInsets.fromLTRB(20, 15, 20, 15)),
+                backgroundColor:
+                    MaterialStateProperty.all<Color>(Colors.blueAccent),
+                overlayColor: MaterialStateProperty.all<Color>(
+                    Colors.white.withOpacity(0.1))),
+            child: const Text(
+              'Get status',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
       ),
     );
   }
