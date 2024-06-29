@@ -1,33 +1,25 @@
-name: Flutter_iOS
+name: iOS-ipa-build
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+  workflow_dispatch:
 
 jobs:
-  build_ios:
+  build-ios:
+    name: 🎉 iOS Build
     runs-on: macos-latest
-    env:
-      SHEME: Runner
-      BUILD_CONFIGURATION: Release
-
     steps:
-      - name: Checkout the code
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
-      - name: Install and set Flutter version
-        uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
-          flutter-version: 3.22.2
           architecture: x64
+      - run: flutter pub get
+      
 
-      - name: Restore packages
-        run: flutter pub get
+      - run: pod repo update
+        working-directory: ios
 
-      - name: Build Flutter
       - run: flutter build ios --release --no-codesign
 
       - run: mkdir Payload
