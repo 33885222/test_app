@@ -1,59 +1,102 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:wireguard_flutter/wireguard_flutter.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const TotoVPNApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class TotoVPNApp extends StatelessWidget {
+  const TotoVPNApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+    return const MaterialApp(
+      title: 'TotoVPN',
+      home: HomePage(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  HomePageState createState() => HomePageState();
 }
 
+class HomePageState extends State<HomePage> {
+  final wireguard = WireGuardFlutter.instance;
+  late String name;
+
+  @override
+  void initState() {
+    super.initState();
+    wireguard.vpnStageSnapshot.listen((event) {
+      // debugPrint("status changed $event");
+      showMsg("status changed $event");
+      if (mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('status changed: $event'),
+        ));
+      }
+    });
+    name = 'my_wg_vpn';
+  }
+
+  Future<void> initialize() async {
+    try {
+      await wireguard.initialize(interfaceName: name);
+      debugPrint("initialize success $name");
+      startVpn();
+    } catch (error, stack) {
+      debugPrint("failed to initialize: $error\n$stack");
+    }
+  }
+
+  void startVpn() async {
+    try {
+      await wireguard.startVpn(
+        serverAddress: '95.179.141.28:51820',
+        wgQuickConfig: conf,
+        providerBundleIdentifier: 'com.billion.wireguardvpn.WGExtension',
+      );
+    } catch (error, stack) {
+      debugPrint("failed to start $error\n$stack");
+    }
+  }
+
+  void disconnect() async {
+    try {
+      await wireguard.stopVpn();
+    } catch (e, str) {
+      debugPrint('Failed to disconnect $e\n$str');
+    }
+  }
+
+  void getStatus() async {
+    debugPrint("getting stage");
+    final stage = await wireguard.stage();
+    debugPrint("stage: $stage");
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('stage: $stage'),
+      ));
+    }
+  }
+
   int _counter = 0;
+
+  void showMsg(String text) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Counter: $text'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
 
   void _incrementCounter() {
     setState(() {
@@ -61,28 +104,32 @@ class MyHomePage extends StatefulWidget {
     });
   }
 
+  void _goToSettings() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const SettingsPage()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+        title: const Text('TotoVPN'),
+        leading: IconButton(
+          icon: const Icon(Icons.settings),
+          onPressed: _goToSettings,
+        ),
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+          children: [
+            Text('$_counter'),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: initialize,
+              child: const Text('Увеличить'),
             ),
           ],
         ),
@@ -90,3 +137,34 @@ class MyHomePage extends StatefulWidget {
     );
   }
 }
+
+class SettingsPage extends StatelessWidget {
+  const SettingsPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Настройки'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: const Center(
+        child: Text('Настройки'),
+      ),
+    );
+  }
+}
+
+const String conf = '''[Interface]
+PrivateKey = MBP/u0nHEnikh/d4VBMlbYT48ZM4Xr7RvksoMHisVVU=
+Address = 10.8.0.8/24
+DNS = 1.1.1.1
+
+[Peer]
+PublicKey = Hc1PhSB+n6p4xfB7N/s1epzkav7iACBqujYwjNk7Xiw=
+PresharedKey = jHK4KSxzHg6PRssot8EMjxbdw8tW9wfQh3Zb3jH4lR4=
+AllowedIPs = 0.0.0.0/0, ::/0
+Endpoint = 95.179.141.28:51820''';
