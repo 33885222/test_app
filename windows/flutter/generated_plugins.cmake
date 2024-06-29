@@ -3,7 +3,7 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
-  battery_plus_windows
+  wireguard_flutter
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST
