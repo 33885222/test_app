@@ -3,6 +3,9 @@ name: iOS-ipa-build
 on:
   workflow_dispatch:
 
+permissions:
+  contents: write  # Позволяет GITHUB_TOKEN иметь доступ на запись
+
 jobs:
   build-ios:
     name: 🎉 iOS Build
