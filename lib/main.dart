@@ -31,57 +31,6 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    wireguard.vpnStageSnapshot.listen((event) {
-      debugPrint("status changed $event");
-      if (mounted) {
-        ScaffoldMessenger.of(context).clearSnackBars();
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('status changed: $event'),
-        ));
-      }
-    });
-    name = 'my_wg_vpn';
-  }
-
-  Future<void> initialize() async {
-    try {
-      await wireguard.initialize(interfaceName: name);
-      debugPrint("initialize success $name");
-    } catch (error, stack) {
-      debugPrint("failed to initialize: $error\n$stack");
-    }
-  }
-
-  void startVpn() async {
-    try {
-      await wireguard.startVpn(
-        serverAddress: '95.179.141.28:51820',
-        wgQuickConfig: conf,
-        providerBundleIdentifier: 'com.billion.wireguardvpn.WGExtension',
-      );
-    } catch (error, stack) {
-      debugPrint("failed to start $error\n$stack");
-    }
-  }
-
-  void disconnect() async {
-    try {
-      await wireguard.stopVpn();
-    } catch (e, str) {
-      debugPrint('Failed to disconnect $e\n$str');
-    }
-  }
-
-  void getStatus() async {
-    debugPrint("getting stage");
-    final stage = await wireguard.stage();
-    debugPrint("stage: $stage");
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('stage: $stage'),
-      ));
-    }
   }
 
   @override
@@ -166,14 +115,3 @@ class _MyAppState extends State<MyApp> {
     );
   }
 }
-
-const String conf = '''[Interface]
-PrivateKey = MBP/u0nHEnikh/d4VBMlbYT48ZM4Xr7RvksoMHisVVU=
-Address = 10.8.0.8/24
-DNS = 1.1.1.1
-
-[Peer]
-PublicKey = Hc1PhSB+n6p4xfB7N/s1epzkav7iACBqujYwjNk7Xiw=
-PresharedKey = jHK4KSxzHg6PRssot8EMjxbdw8tW9wfQh3Zb3jH4lR4=
-AllowedIPs = 0.0.0.0/0, ::/0
-Endpoint = 95.179.141.28:51820''';
